@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ledger — Personal Finance Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Karla:wght@300;400;500;600&family=Inconsolata:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ═══════════════ HEADER ═══════════════ -->
+  <header>
+    <div class="logo">
+      <div class="logo-word">Le<em>dger</em></div>
+      <div class="logo-tagline">Personal Finance Tracker</div>
+    </div>
+    <div class="header-meta" id="headerDate"></div>
+  </header>
+
+  <!-- ═══════════════ SUMMARY CARDS ═══════════════ -->
+  <section class="summary" aria-label="Financial summary">
+
+    <div class="summary-card balance">
+      <div class="card-label">
+        <span class="card-label-dot"></span>Net Balance
+      </div>
+      <div class="card-amount" id="totalBalance">₹0.00</div>
+      <div class="card-bg-num">₹</div>
+    </div>
+
+    <div class="summary-card income">
+      <div class="card-label">
+        <span class="card-label-dot"></span>Total Income
+      </div>
+      <div class="card-amount" id="totalIncome">₹0.00</div>
+      <div class="card-bg-num">↑</div>
+    </div>
+
+    <div class="summary-card expense">
+      <div class="card-label">
+        <span class="card-label-dot"></span>Total Expenses
+      </div>
+      <div class="card-amount" id="totalExpense">₹0.00</div>
+      <div class="card-bg-num">↓</div>
+    </div>
+
+  </section>
+
+  <!-- ═══════════════ MAIN GRID ═══════════════ -->
+  <div class="main-grid">
+
+    <!-- ─── ADD TRANSACTION PANEL ─── -->
+    <div class="panel" role="form" aria-label="Add transaction">
+      <div class="panel-header">
+        <div class="panel-title">Add Transaction</div>
+      </div>
+
+      <div class="panel-body">
+
+        <!-- Type Toggle -->
+        <div class="type-toggle" role="group" aria-label="Transaction type">
+          <button
+            class="toggle-btn active-income"
+            id="btnIncome"
+            onclick="setType('income')"
+            aria-pressed="true"
+          >
+            ↑ &nbsp;Income
+          </button>
+          <button
+            class="toggle-btn"
+            id="btnExpense"
+            onclick="setType('expense')"
+            aria-pressed="false"
+          >
+            ↓ &nbsp;Expense
+          </button>
+        </div>
+
+        <!-- Amount -->
+        <div class="field">
+          <label for="amount">Amount</label>
+          <div class="amount-wrap">
+            <span class="currency-symbol" aria-hidden="true">₹</span>
+            <input
+              type="number"
+              id="amount"
+              placeholder="0.00"
+              min="0.01"
+              step="0.01"
+              autocomplete="off"
+              aria-label="Transaction amount in rupees"
+            >
+          </div>
+          <div class="error-msg" id="err-amount" role="alert">
+            Please enter a valid amount greater than ₹0.
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="field">
+          <label for="description">Description</label>
+          <input
+            type="text"
+            id="description"
+            placeholder="What was this for?"
+            maxlength="60"
+            autocomplete="off"
+            aria-label="Transaction description"
+          >
+          <div class="error-msg" id="err-desc" role="alert">
+            Please enter a description (at least 2 characters).
+          </div>
+        </div>
+
+        <!-- Category -->
+        <div class="field">
+          <label>Category</label>
+          <div class="category-grid" id="categoryGrid" role="group" aria-label="Select a category">
+            <!-- Built dynamically by JS -->
+          </div>
+          <div class="error-msg" id="err-cat" role="alert">
+            Please select a category.
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <button
+          class="submit-btn"
+          onclick="Transactions.add()"
+          aria-label="Add transaction"
+        >
+          + &nbsp;<span id="submitLabel">Add Income</span>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- ─── HISTORY PANEL ─── -->
+    <div class="panel" aria-label="Transaction history">
+      <div class="panel-header">
+        <div class="panel-title">History</div>
+        <div class="history-controls">
+
+          <select
+            class="filter-select"
+            id="filterType"
+            aria-label="Filter by type"
+          >
+            <option value="all">All types</option>
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+
+          <select
+            class="filter-select"
+            id="filterCat"
+            aria-label="Filter by category"
+          >
+            <!-- Populated by JS -->
+          </select>
+
+          <button
+            class="clear-all-btn"
+            onclick="Modal.confirmClearAll()"
+            aria-label="Clear all transactions"
+          >
+            Clear all
+          </button>
+
+        </div>
+      </div>
+
+      <!-- Transaction List -->
+      <div class="tx-list" id="txList" role="list" aria-live="polite" aria-label="Transaction entries">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState" role="status">
+        <div class="empty-icon">🌿</div>
+        <div class="empty-title">Nothing here yet</div>
+        <div class="empty-sub">Add your first transaction to begin tracking.</div>
+      </div>
+
+    </div>
+  </div><!-- /main-grid -->
+
+</div><!-- /app -->
+
+<!-- ═══════════════ TOAST ═══════════════ -->
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true">
+  <div class="toast-dot" id="toastDot"></div>
+  <span id="toastMsg"></span>
+</div>
+
+<!-- ═══════════════ CONFIRM MODAL ═══════════════ -->
+<div
+  class="modal-overlay"
+  id="modalOverlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modalTitle"
+>
+  <div class="modal">
+    <div class="modal-icon">🗑</div>
+    <div class="modal-title" id="modalTitle">Are you sure?</div>
+    <div class="modal-sub"   id="modalSub">This action cannot be undone.</div>
+    <div class="modal-actions">
+      <button class="modal-cancel"  onclick="Modal.close()">Cancel</button>
+      <button class="modal-confirm" id="modalConfirmBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
